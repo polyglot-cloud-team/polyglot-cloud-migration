@@ -1,0 +1,176 @@
+
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  background: black;
+  color: white;
+}
+
+#bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+.overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.55);
+  z-index: -1;
+}
+
+.container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 30px 60px;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 80px;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: cyan;
+}
+
+nav ul {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+}
+
+nav li {
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+nav li:hover {
+  color: cyan;
+  transform: scale(1.1);
+}
+
+.hero {
+  text-align: center;
+  margin-top: 80px;
+}
+
+.hero h1 {
+  font-size: 70px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 25px cyan;
+}
+
+.subtitle {
+  width: 70%;
+  margin: auto;
+  line-height: 1.8;
+  color: #cccccc;
+  font-size: 18px;
+}
+
+.status-box {
+  width: 400px;
+  margin: 40px auto;
+  padding: 25px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 0 20px rgba(0,255,255,0.3);
+}
+
+#status {
+  margin-top: 10px;
+  color: cyan;
+  font-size: 22px;
+}
+
+.cards {
+  margin-top: 60px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+}
+
+.card {
+  padding: 30px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+  transition: 0.4s;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.card:hover {
+  transform: translateY(-10px) scale(1.03);
+  box-shadow: 0 0 30px cyan;
+}
+
+.card h3 {
+  margin-bottom: 15px;
+  color: cyan;
+}
+
+.glow-btn {
+  margin-top: 50px;
+  padding: 18px 40px;
+  font-size: 18px;
+  border: none;
+  border-radius: 50px;
+  background: cyan;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.4s;
+  box-shadow: 0 0 25px cyan;
+}
+
+.glow-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 50px cyan;
+}
+
+@media(max-width: 768px) {
+
+  .hero h1 {
+    font-size: 40px;
+  }
+
+  .subtitle {
+    width: 100%;
+  }
+
+  .status-box {
+    width: 100%;
+  }
+
+  nav {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  nav ul {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+
