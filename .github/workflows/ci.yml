@@ -47,11 +47,11 @@ jobs:
       working-directory: worker-python
 
     - name: Run Python Linting (Flake8)
-      run: flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+      run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
       working-directory: worker-python
 
     - name: Run Python Worker Tests
-      run: pytest tests/
+      run: pytest .
       working-directory: worker-python
 
     # --- JavaScript Frontend Validation ---
