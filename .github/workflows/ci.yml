@@ -1,0 +1,118 @@
+name: Polyglot CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "feature/*" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # ==========================================
+  # STAGE 1: Code Quality, Linting & Testing
+  # ==========================================
+  validate-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # --- .NET Backend Validation ---
+    name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore .NET Dependencies
+      run: dotnet restore backend-dotnet/
+
+    - name: Run .NET Linter/Format Check
+      run: dotnet format backend-dotnet/ --verify-no-changes
+
+    - name: Run .NET Tests
+      run: dotnet test backend-dotnet/ --no-restore
+
+    # --- Python Worker Validation ---
+    - name: Setup Python Runtime
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f worker-python/requirements.txt ]; then pip install -r worker-python/requirements.txt; fi
+        pip install flake8 pytest
+
+    - name: Run Python Linting (Flake8)
+      run: flake8 worker-python/src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Run Python Worker Tests
+      run: pytest worker-python/tests/
+
+    # --- JavaScript Frontend Validation ---
+    - name: Setup Node.js Environment
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: frontend-js/package.json
+
+    - name: Install Frontend Dependencies
+      run: cd frontend-js && npm ci
+
+    - name: Run Frontend Linting
+      run: cd frontend-js && npm run lint --if-present
+
+    - name: Run Frontend Tests
+      run: cd frontend-js && npm test -- --watchAll=false
+
+  # ==========================================
+  # STAGE 2: Secure Docker Build & Registry Push
+  # ==========================================
+  build-and-publish:
+    needs: validate-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' # Only push to registry when merging to main
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    # --- Build & Push .NET API ---
+    - name: Build and Push .NET Backend Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend-dotnet
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/polyglot-backend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # --- Build & Push Python Worker ---
+    - name: Build and Push Python Worker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./worker-python
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/polyglot-worker:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    # --- Build & Push JS Frontend ---
+    - name: Build and Push JS Frontend Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend-js
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/polyglot-frontend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
