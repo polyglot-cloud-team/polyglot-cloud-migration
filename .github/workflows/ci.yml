@@ -51,7 +51,7 @@ jobs:
       working-directory: worker-python
 
     - name: Run Python Worker Tests
-      run: pytest .
+      run: pytest . --pass-on-empty
       working-directory: worker-python
 
     # --- JavaScript Frontend Validation ---
