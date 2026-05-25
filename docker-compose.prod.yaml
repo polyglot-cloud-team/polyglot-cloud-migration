@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: rao578612/polyglot-frontend:latest
+    ports:
+      - "80:80"
+    restart: always
+    depends_on:
+      - backend
+
+  backend:
+    image: rao578612/polyglot-backend:latest
+    ports:
+      - "5000:5000"
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+
+  worker:
+    image: rao578612/polyglot-worker:latest
+    restart: always
+    depends_on:
+      - backend
+
+networks:
+  default:
+    name: polyglot-production-network
