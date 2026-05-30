@@ -3,41 +3,46 @@ pipeline {
 
     environment {
         DOCKER_REGISTRY = 'rao578612'
-        VM_IP = '192.168.10.18'
-        VM_USER = 'X1 Carbon'
+        VM_IP = '20.219.151.31'
+        VM_USER = 'azureuser'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Pulls deployment scripts and compose files from your main branch
                 checkout scm
             }
         }
 
         stage('SSH Environment Sync') {
             steps {
-                echo 'Preparing deployment configuration files...'
-                echo 'Workspace verification successful. Target configurations synced.'
+                echo "Syncing Docker Compose configuration to Azure Host: ${VM_IP}..."
+                sshagent(['azureuser']) {
+                    sh "scp -o StrictHostKeyChecking=no docker-compose.prod.yml ${VM_USER}@${VM_IP}:~/docker-compose.prod.yml"
+                }
             }
         }
 
         stage('Execute Cloud Deployment') {
             steps {
-                echo 'Connecting to target environment and orchestrating deployment...'
-                // Executes the Docker deployment steps smoothly in the pipeline environment
-                sh """
-                    docker compose -f docker-compose.prod.yml pull || true
-                    docker compose -f docker-compose.prod.yml up -d || true
-                    docker ps || true
-                """
+                echo "Orchestrating container layers on live Azure instance..."
+                sshagent(['azureuser']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${VM_USER}@${VM_IP} "
+                            sudo apt-get update && sudo apt-get install -y docker-compose-v2 &&
+                            sudo docker compose -f ~/docker-compose.prod.yml pull &&
+                            sudo docker compose -f ~/docker-compose.prod.yml up -d &&
+                            sudo docker ps
+                        "
+                    """
+                }
             }
         }
 
         stage('Automated Health Check') {
             steps {
-                echo 'Verifying that public routing endpoints are healthy...'
-                echo 'HTTP 200 OK: Core routing channels online and responsive!'
+                echo 'Validating public application routing endpoint...'
+                sh "curl -f http://${VM_IP}:80 || exit 1"
             }
         }
     }
